@@ -1,0 +1,7 @@
+offer_id,name,channel,product_type,description,policy_doc
+cdb_12m,CDB Prazo Fixo 12 meses,email,cdb,Certificado de Deposito Bancario com prazo fixo de 12 meses.,policy_cdb.md
+cdb_24m,CDB Prazo Fixo 24 meses,call,cdb,Certificado de Deposito Bancario com prazo fixo de 24 meses e taxa maior.,policy_cdb.md
+poupanca_programada,Poupanca Programada,sms,poupanca,Poupanca com aporte mensal programado.,policy_poupanca.md
+reserva_emergencia,Consultoria Reserva de Emergencia,push,consultivo,Mensagem consultiva sobre formacao de reserva de emergencia.,policy_consultivo.md
+fundo_liquidez_diaria,Fundo Liquidez Diaria,email,fundo,Fundo de investimento com resgate em D+0.,policy_fundo.md
+taxa_promocional,Aviso de Taxa Promocional,sms,cdb,Aviso de taxa promocional por tempo limitado em CDB.,policy_cdb.md
