@@ -1,3 +1,17 @@
+"""Local RAG knowledge base for the LLM assistant.
+
+Uses `InMemoryVectorStore` instead of a persisted vector DB (e.g. Chroma):
+the corpus is a handful of short markdown files, rebuilt from source on every
+process start, so a persisted external store would add dependency weight
+without a real benefit at this scale.
+
+Indexes `reports/` alongside the policy docs so the assistant can answer
+"resuma experimentos": the written technical reports (comparação de
+algoritmos, avaliação offline, geração de dados) already hold the experiment
+results in prose. A live MLflow tracking server is a later-stage (MLOps)
+concern and isn't required for this capability today.
+"""
+
 from __future__ import annotations
 
 from pathlib import Path

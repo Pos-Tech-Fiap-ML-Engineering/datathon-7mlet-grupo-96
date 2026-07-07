@@ -50,28 +50,56 @@ Para confirmar o ponto de entrada da CLI:
 .venv/bin/bandit-cli --version
 ```
 
+Para obter uma decisão via CLI, dado um contexto de cliente:
+
+```bash
+.venv/bin/bandit-cli decide --context '{"job":"admin.","age":35,"poutcome":"nonexistent","default":"no","previous":2}'
+```
+
+Para subir a API (FastAPI, contrato oficial de decisão) em `http://127.0.0.1:8000`:
+
+```bash
+make serve
+```
+
+Para rodar a demo visual (Streamlit):
+
+```bash
+make demo
+```
+
 ## Mapa de pastas
 
-Estrutura atual (Etapa 0 — apenas scaffolding):
+Estrutura atual:
 
 ```
-src/bandit_platform/   # pacote Python principal (cli.py hoje; demais modulos nas proximas etapas)
-tests/                 # suite de testes automatizados (pytest)
-Makefile               # comandos de setup/lint/test
-pyproject.toml         # dependencias, versao de Python, ponto de entrada da CLI
-.env.example           # variaveis de ambiente necessarias (sem valores reais)
+src/bandit_platform/
+  data/          # ingestao e limpeza do dataset Kaggle (Etapas 1-2)
+  synthetic/     # enriquecimento sintetico: catalogo de ofertas e eventos (Etapa 2)
+  policies/      # baseline, Thompson Sampling contextual (com warm start), LinUCB (Etapa 3)
+  evaluation/    # simulacao offline, metricas e golden set (Etapa 4)
+  service/       # FastAPI, contrato de decisao, active policy, audit log (Etapa 5)
+  assistant/     # assistente LLM/RAG (LangChain + Claude) sobre policy docs e reports (Etapa 5)
+  cli.py         # ponto de entrada da CLI (bandit-cli)
+streamlit_app/   # demo visual em Streamlit (Etapa 5)
+data/
+  kaggle/                # dataset bruto (bank-marketing, henriqueyamahata)
+  processed/             # dados limpos/tratados
+  synthetic_enrichment/  # policy_docs (usados pelo RAG) e eventos sinteticos
+  golden_set/            # casos de avaliacao (evaluation_cases.jsonl)
+notebooks/       # EDA (01_eda.ipynb)
+reports/         # relatorios tecnicos escritos (data-generation, data-quality, algorithm-comparison, offline-evaluation)
+docs/            # contrato de servico (service-contract.md)
+tests/           # suite de testes automatizados (pytest)
+Makefile         # comandos de setup/lint/test/serve/demo
+pyproject.toml   # dependencias, versao de Python, ponto de entrada da CLI
+.env.example     # variaveis de ambiente necessarias (sem valores reais)
 ```
 
-Estrutura planejada para as próximas etapas:
-
-```
-data/{kaggle,processed,synthetic_enrichment,golden_set}/  # Etapas 1-2
-notebooks/                                                # Etapa 1 (EDA)
-docs/                                                      # Etapas 6-8 (arquitetura Azure, model card, system card, plano LGPD)
-reports/                                                  # Etapas 2 e 8 (data-generation.md, technical-report.md)
-streamlit_app/                                            # Etapa 5
-infra/terraform/                                          # Etapa 6
-```
+Ainda planejado (Etapas 6-8): `infra/terraform/` (arquitetura-alvo Azure) e
+documentos adicionais em `docs/` e `reports/` — arquitetura Azure, model card,
+system card, plano LGPD e o relatório técnico final
+(`reports/technical-report.md`).
 
 ## Comandos disponíveis
 
@@ -80,14 +108,25 @@ infra/terraform/                                          # Etapa 6
 | `make setup` | Cria `.venv` e instala o pacote em modo editável com dependências de desenvolvimento |
 | `make lint` | Roda `ruff check` sobre `src/` e `tests/` |
 | `make test` | Roda a suite de testes automatizados (`pytest`) |
+| `make serve` | Sobe a API FastAPI (`uvicorn`, com reload) em `http://127.0.0.1:8000` |
+| `make demo` | Roda a demo visual em Streamlit (`streamlit_app/app.py`) |
 
-## Limitações desta etapa
+## Status do projeto
 
-Este README reflete o estado da **Etapa 0 (organização do projeto)**: só existe
-scaffolding do pacote Python, testes de exemplo, automação de setup/lint/test e
-CI. Carregamento de dados, enriquecimento sintético, algoritmos de bandit,
-avaliação, serviço, arquitetura Azure, MLOps e governança serão adicionados nas
-Etapas 1 a 8.
+Concluído:
+
+- Etapa 0 — organização do projeto (scaffolding, testes de exemplo, automação de setup/lint/test, CI).
+- Etapa 1 — carregamento e limpeza dos dados Kaggle, com EDA (`notebooks/01_eda.ipynb`).
+- Etapa 2 — enriquecimento sintético: catálogo de ofertas, eventos e policy docs (`data/synthetic_enrichment/`).
+- Etapa 3 — algoritmos de decisão: baseline determinístico, Thompson Sampling contextual (com warm start via propensão em PyTorch) e LinUCB.
+- Etapa 4 — avaliação offline com golden set (`data/golden_set/evaluation_cases.jsonl`) e relatórios técnicos de comparação de algoritmos.
+- Etapa 5 — serviço FastAPI (contrato oficial) + CLI (`bandit-cli`) + demo Streamlit, com assistente LLM/RAG (LangChain + Claude) sobre os policy docs e os relatórios técnicos.
+
+Pendente:
+
+- Etapa 6 — arquitetura-alvo Azure e infraestrutura como código (Terraform).
+- Etapa 7 — ciclo de vida MLOps (tracking, retraining, monitoramento).
+- Etapa 8 — governança, relatório técnico final e pitch.
 
 ## Licença
 
