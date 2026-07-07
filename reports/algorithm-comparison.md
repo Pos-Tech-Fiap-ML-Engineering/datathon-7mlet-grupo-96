@@ -6,7 +6,7 @@ na Etapa 3 — `BestHistoricalArmPolicy` (baseline), `ThompsonSamplingPolicy`
 completa da Etapa 1 (`data/processed/bank_marketing.csv`, 41.188 linhas) enriquecida
 com os eventos e recompensas atrasadas sintéticos da Etapa 2
 (`data/synthetic_enrichment/offer_events.csv` e `delayed_rewards.csv`), usando o
-simulador de replay com rejeição (`run_replay_simulation`, Task 6). Todos os números
+simulador de replay com rejeição (`run_replay_simulation`). Todos os números
 abaixo foram observados diretamente na saída do comando reproduzido a seguir —
 nenhum foi estimado ou inventado.
 

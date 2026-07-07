@@ -10,7 +10,7 @@ class LinUCBPolicy:
     upper-confidence bonus proportional to prediction uncertainty. Chosen as
     the UCB-family policy covering the challenge's "Nilos-UCB" reference (no
     standard published algorithm by that name was found in the literature —
-    see reports/algorithm-comparison.md, Task 7)."""
+    see reports/algorithm-comparison.md)."""
 
     def __init__(self, arms: list[str], n_features: int, alpha: float = 1.0):
         self._arms = arms

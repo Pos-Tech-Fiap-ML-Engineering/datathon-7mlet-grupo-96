@@ -65,7 +65,7 @@ dependem do resultado do contato em si.
 ## Decisão de vazamento
 
 A coluna `duration` é descartada na camada processada (ver
-`src/bandit_platform/data/clean.py`, Task 2): ela só é conhecida depois que a
+`src/bandit_platform/data/clean.py`): ela só é conhecida depois que a
 ligação termina, ou seja, no momento de decidir qual oferta/mensagem apresentar ela
 ainda não existe. Mantê-la treinaria um modelo que "sabe o futuro" — vazamento
 temporal clássico deste dataset, documentado também na literatura original do UCI
