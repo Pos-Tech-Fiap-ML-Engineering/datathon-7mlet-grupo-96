@@ -11,6 +11,7 @@ requires-python = ">=3.11"
 license = { text = "MIT" }
 dependencies = [
     "pandas>=2.2",
+    "numpy>=1.26",
     "kaggle>=2.0",
     "python-dotenv>=1.0",
 ]
