@@ -15,3 +15,6 @@ test:
 
 serve:
 	$(VENV)/bin/uvicorn bandit_platform.service.app:app --reload --port 8000
+
+demo:
+	$(VENV)/bin/streamlit run streamlit_app/app.py

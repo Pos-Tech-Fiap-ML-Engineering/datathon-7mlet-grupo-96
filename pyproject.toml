@@ -21,6 +21,7 @@ dependencies = [
     "langchain-text-splitters>=0.3",
     "langchain-huggingface>=0.1",
     "langchain-anthropic>=0.3",
+    "streamlit>=1.38",
 ]
 
 [project.scripts]
