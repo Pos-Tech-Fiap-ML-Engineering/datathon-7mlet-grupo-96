@@ -26,9 +26,9 @@ def _ensure_kaggle_api_token() -> None:
 
 
 def download_dataset(dest_dir: str | Path) -> Path:
-    from kaggle.api.kaggle_api_extended import KaggleApi
-
     _ensure_kaggle_api_token()
+
+    from kaggle.api.kaggle_api_extended import KaggleApi
 
     dest_dir = Path(dest_dir)
     dest_dir.mkdir(parents=True, exist_ok=True)
