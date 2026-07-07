@@ -149,9 +149,9 @@ As seis primeiras colunas (decisões aceitas até entropia de seleção) são as
 mesmas medidas em `reports/algorithm-comparison.md`, reunidas aqui com as
 duas métricas novas da Etapa 4 (segurança e acerto do golden set) para dar
 uma visão única de cada política. Lendo a tabela em conjunto: Thompson
-Sampling tem o **menor regret médio** (0,024970) e a **maior entropia entre
-as políticas com aprendizado online** (1,5349, ficando atrás apenas do LinUCB
-em exploração), o que é consistente com sua taxa de acerto mais baixa no
+Sampling tem o **menor regret médio** (0,024970) e **entropia maior que o baseline**
+(1,5349 vs. 1,0691), ficando porém atrás do LinUCB (1,6940) em exploração. Isso é
+consistente com sua taxa de acerto mais baixa no
 golden set — ela explora mais e por isso "erra" mais em relação a um oráculo
 determinístico, mas decide melhor em valor esperado no agregado. O baseline
 tem a maior recompensa acumulada/média, mas isso reflete a vantagem de
