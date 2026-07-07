@@ -28,6 +28,8 @@ def _ensure_kaggle_api_token() -> None:
 def download_dataset(dest_dir: str | Path) -> Path:
     _ensure_kaggle_api_token()
 
+    # O pacote `kaggle` autentica no momento do import (le KAGGLE_API_TOKEN do
+    # ambiente); por isso este import so pode vir depois de _ensure_kaggle_api_token().
     from kaggle.api.kaggle_api_extended import KaggleApi
 
     dest_dir = Path(dest_dir)

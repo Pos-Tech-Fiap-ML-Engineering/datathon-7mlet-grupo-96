@@ -20,9 +20,10 @@ def test_load_raw_parses_semicolon_delimited_csv():
     assert isinstance(df, pd.DataFrame)
     assert len(df) == 8
     assert list(df.columns) == [
-        "age", "job", "marital", "education", "default", "balance",
-        "housing", "loan", "contact", "day", "month", "duration",
-        "campaign", "pdays", "previous", "poutcome", "y",
+        "age", "job", "marital", "education", "default", "housing", "loan",
+        "contact", "month", "day_of_week", "duration", "campaign", "pdays",
+        "previous", "poutcome", "emp.var.rate", "cons.price.idx",
+        "cons.conf.idx", "euribor3m", "nr.employed", "y",
     ]
     assert df["age"].dtype.kind == "i"
     assert set(df["y"].unique()) <= {"yes", "no"}
