@@ -14,4 +14,4 @@ def get_chat_model(model: str = DEFAULT_MODEL) -> ChatAnthropic:
         raise RuntimeError(
             "ANTHROPIC_API_KEY not set. Add it to your local .env file (see .env.example)."
         )
-    return ChatAnthropic(model=model, temperature=0)
+    return ChatAnthropic(model=model)
