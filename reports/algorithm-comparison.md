@@ -106,8 +106,8 @@ da tabela ("baseline tem a maior recompensa, logo é a melhor política") é eng
    recompensa e o regret *acumulados* não são diretamente comparáveis entre
    políticas — apenas as médias por decisão (`recompensa média`, `regret médio`)
    são comparáveis com um mínimo de rigor.
-2. Mesmo nas médias, `thompson_sampling` tem a **recompensa média mais baixa**
-   (0,1543 vs. 0,1811 do baseline) mas o **regret médio mais baixo** dos três
+2. Mesmo nas médias, `thompson_sampling` tem **recompensa média mais baixa que o baseline**
+   (0,1543 vs. 0,1811) mas o **regret médio mais baixo** dos três
    (0,024970, contra 0,026769 do baseline e 0,029457 do LinUCB) — o que a
    princípio parece contraditório. Isso acontece porque `mean realized reward` é
    uma média sobre desfechos binários já sorteados e fixos no dataset estático
@@ -248,9 +248,10 @@ evidência de aceite do edital pede para este ponto ("tratamento... descrito").
 
 - **O oráculo usado para calcular regret conhece os parâmetros reais de geração da
   Etapa 2** (`ARM_CONVERSION_EFFECT` e `CHANNEL_ENGAGEMENT_RATE`,
-  `src/bandit_platform/synthetic/events.py`) — `oracle_expected_reward`
-  (`src/bandit_platform/evaluation/metrics.py`) importa esses dicionários
-  diretamente. Isso é intencional: em qualquer benchmark de bandit, a avaliação
+  `src/bandit_platform/synthetic/events.py`) — `run_replay_simulation`
+  (`src/bandit_platform/evaluation/simulate.py`) importa esses dicionários
+  diretamente e os passa como argumentos para `oracle_expected_reward`
+  (`src/bandit_platform/evaluation/metrics.py`). Isso é intencional: em qualquer benchmark de bandit, a avaliação
   precisa de acesso privilegiado à função de recompensa verdadeira do ambiente
   simulado para poder calcular regret — a própria política avaliada nunca vê esses
   valores. Mas isso também significa que o regret medido aqui **não poderia ser
