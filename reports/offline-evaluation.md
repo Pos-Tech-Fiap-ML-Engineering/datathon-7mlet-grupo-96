@@ -9,27 +9,59 @@ executados contra os dados reais das Etapas 1-2.
 
 ## Passo 1: golden set (22 casos) contra as três políticas guardadas
 
-Comando: script Python usando `load_golden_set`, `run_golden_set`,
-`SuitabilityGuardedPolicy` envolvendo `BestHistoricalArmPolicy`,
-`ThompsonSamplingPolicy` (prior_strength=4.0, seed=2) e `LinUCBPolicy`
-(alpha=1.0), contra `data/golden_set/evaluation_cases.jsonl`.
+**Nota sobre a metodologia:** a primeira versão desta seção avaliava
+Thompson Sampling e LinUCB como instâncias FRESCAS/não treinadas (LinUCB com
+`A=identity`/`b=zero` por braço; Thompson apenas com os priors de warm-start,
+sem experiência de replay). Como o golden set é avaliado em modo one-shot
+(sem chamadas a `policy.update()` entre os casos), um LinUCB fresco produz
+escores idênticos para todos os braços em todo caso (média 0, mesmo termo de
+bônus pois `A^-1=I` é igual para todos), então `max()` sempre escolhe o
+primeiro braço na ordem do catálogo (`cdb_12m`) independente do contexto —
+isso derrubava a taxa de acerto do LinUCB para 0/22 como um artefato da
+ordem do catálogo, não um sinal real sobre a qualidade da política. Também
+tornava a comparação injusta: baseline treinado via `.fit()` sobre dados
+reais, Thompson com priors de warm-start, LinUCB sem nenhuma informação.
+
+A correção treina cada política via a mesma simulação de replay usada no
+relatório de comparação de algoritmos (`run_replay_simulation` sobre a
+tabela de treino completa, com os mesmos seeds: seed=2 para Thompson
+Sampling, seed=3 para LinUCB) e só então congela a política treinada para
+avaliá-la contra o golden set — assim o golden set mede o comportamento real
+"como servido" de cada política, não um estado de cold-start.
+
+Comando: script Python usando `build_training_table`, `run_replay_simulation`
+(seed=2 para `ThompsonSamplingPolicy` com priors de warm-start
+`prior_strength=4.0`, seed=3 para `LinUCBPolicy` com `alpha=1.0`) para
+treinar cada política sobre a tabela de treino real, seguido de
+`load_golden_set`/`run_golden_set` contra as políticas treinadas e
+congeladas (envolvidas por `SuitabilityGuardedPolicy`), contra
+`data/golden_set/evaluation_cases.jsonl`. O baseline (`BestHistoricalArmPolicy`)
+segue treinado via `.fit()` sobre os dados reais, como antes.
 
 ```
 baseline
   safety pass rate: 1.0
   expected-action match rate: 0.18181818181818182
+  chosen arm distribution: {'reserva_emergencia': 8, 'taxa_promocional': 4, 'cdb_12m': 4, 'cdb_24m': 3, 'poupanca_programada': 2, 'fundo_liquidez_diaria': 1}
 thompson_sampling
   safety pass rate: 1.0
   expected-action match rate: 0.13636363636363635
+  chosen arm distribution: {'taxa_promocional': 7, 'reserva_emergencia': 7, 'cdb_12m': 4, 'poupanca_programada': 3, 'cdb_24m': 1}
 linucb
   safety pass rate: 1.0
-  expected-action match rate: 0.0
+  expected-action match rate: 0.18181818181818182
+  chosen arm distribution: {'reserva_emergencia': 7, 'cdb_12m': 6, 'taxa_promocional': 5, 'fundo_liquidez_diaria': 2, 'cdb_24m': 1, 'poupanca_programada': 1}
 ```
 
 Taxa de segurança 100% (1.0) para as três políticas guardadas — nenhuma falha
-de segurança observada. A taxa de acerto da ação esperada varia entre
-políticas (18,2% baseline, 13,6% Thompson Sampling, 0% LinUCB); isso é
-esperado e será discutido no relatório final.
+de segurança observada, mesmo após treinar Thompson Sampling e LinUCB via
+replay completo. A taxa de acerto da ação esperada é 18,2% para baseline e
+LinUCB e 13,6% para Thompson Sampling. Diferente da versão anterior, o
+resultado do LinUCB deixou de ser um artefato de desempate por ordem do
+catálogo (0/22) e passou a refletir o comportamento da política depois de
+aprender com o replay — ficando, neste golden set, no mesmo patamar do
+baseline. A comparação entre políticas será discutida com mais profundidade
+no relatório final.
 
 ## Passo 2: análise de sensibilidade de hiperparâmetros
 
