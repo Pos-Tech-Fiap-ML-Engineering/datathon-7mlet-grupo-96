@@ -41,3 +41,7 @@ infra/terraform/*.tfvars
 # Local working notes (not part of the deliverable)
 .planning/
 VIDEO-NOTES.md
+
+# Dados brutos baixados do Kaggle (grandes, nao versionados; ver data/kaggle/README.md)
+data/kaggle/raw/
+data/kaggle/dataset_manifest.json

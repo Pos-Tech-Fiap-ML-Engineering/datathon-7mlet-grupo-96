@@ -9,7 +9,10 @@ description = "Plataforma de experimentacao adaptativa (multi-armed bandit) - Da
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
-dependencies = []
+dependencies = [
+    "pandas>=2.2",
+    "kaggle>=1.6",
+]
 
 [project.scripts]
 bandit-cli = "bandit_platform.cli:main"
