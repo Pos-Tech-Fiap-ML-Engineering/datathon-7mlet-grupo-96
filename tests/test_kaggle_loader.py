@@ -3,8 +3,13 @@ import json
 from pathlib import Path
 
 import pandas as pd
+import pytest
 
-from bandit_platform.data.kaggle_loader import load_raw, write_manifest
+from bandit_platform.data.kaggle_loader import (
+    _ensure_kaggle_api_token,
+    load_raw,
+    write_manifest,
+)
 
 FIXTURE = Path(__file__).parent / "fixtures" / "bank_marketing_sample.csv"
 
@@ -39,3 +44,15 @@ def test_write_manifest_records_sha256_and_source(tmp_path):
 
     on_disk = json.loads(manifest_path.read_text())
     assert on_disk == result
+
+
+def test_ensure_kaggle_api_token_raises_when_missing(monkeypatch, tmp_path):
+    monkeypatch.delenv("KAGGLE_API_TOKEN", raising=False)
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(RuntimeError, match="KAGGLE_API_TOKEN"):
+        _ensure_kaggle_api_token()
+
+
+def test_ensure_kaggle_api_token_passes_when_set(monkeypatch):
+    monkeypatch.setenv("KAGGLE_API_TOKEN", "fake-token-for-test")
+    _ensure_kaggle_api_token()

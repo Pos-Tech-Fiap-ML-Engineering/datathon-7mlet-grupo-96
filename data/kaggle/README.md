@@ -7,8 +7,12 @@
 
 ## Como baixar
 
-Requer uma conta Kaggle e um token de API (`KAGGLE_USERNAME`/`KAGGLE_KEY` no seu
-`.env` local — ver `.env.example`).
+Requer uma conta Kaggle e um token de API. Em
+https://www.kaggle.com/settings/api, na seção "API Tokens", dê um nome ao token e
+clique em "Generate" — copie o valor mostrado e coloque em `KAGGLE_API_TOKEN` no
+seu `.env` local (ver `.env.example`). O token é lido automaticamente do `.env`
+pelo próprio loader (via `python-dotenv`), sem precisar exportá-lo manualmente no
+shell.
 
 ```bash
 .venv/bin/python -c "from bandit_platform.data.kaggle_loader import download_dataset; print(download_dataset('data/kaggle/raw'))"
