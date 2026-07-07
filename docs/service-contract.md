@@ -25,6 +25,8 @@ pela política ativa, com justificativa e versão da política.
 | default | string | sim | `yes`, `no` ou `unknown` |
 | previous | inteiro | sim | >= 0 |
 
+**Nota sobre validação:** `age` é validado pela API — valores fora de 18-110 resultam em 422. Os valores listados para `poutcome` e `default` são os domínios *documentados* para os quais a política foi desenhada, mas **não são enforçados pela API**. Qualquer string é aceita para esses campos sem gerar erro 422; valores desconhecidos são silenciosamente convertidos em vetores zero-one internamente.
+
 ### Resposta (200)
 
 ```json
@@ -77,4 +79,7 @@ que o serviço está no ar.
 A primeira chamada a `/decide` (ou o primeiro `bandit-cli decide`) treina a
 política a partir dos dados reais (carrega os CSVs, treina o modelo de
 propensão em PyTorch, roda o replay da Etapa 3) — isso pode levar alguns
-segundos. Chamadas seguintes usam a política já treinada, cacheada em memória.
+segundos. Chamadas seguintes **ao servidor da API** usam a política já
+treinada, cacheada em memória dentro do mesmo processo. O CLI (`bandit-cli
+decide`) não se beneficia desse cache — cada invocação é um novo processo e
+retreina do zero.
