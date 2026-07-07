@@ -120,3 +120,17 @@ def test_assistant_ask_endpoint_reports_decision_not_found():
         app.dependency_overrides.clear()
 
     assert response.status_code == 404
+
+
+def test_assistant_ask_endpoint_rejects_empty_body_without_building_assistant():
+    calls = []
+    app.dependency_overrides[_assistant_dependency] = lambda: calls.append(1) or _FakeAssistant()
+    client = TestClient(app)
+
+    try:
+        response = client.post("/assistant/ask", json={})
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 400
+    assert calls == []

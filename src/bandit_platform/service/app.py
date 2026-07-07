@@ -69,6 +69,14 @@ def _assistant_dependency() -> _Assistant:
 
 @app.post("/assistant/ask", response_model=AssistantResponse)
 def assistant_ask_endpoint(request: AssistantRequest) -> AssistantResponse:
+    # The "neither provided" validation must run before the assistant dependency
+    # is resolved. Both `question` and `decision_id` are optional, so an empty
+    # body `{}` passes Pydantic validation and would otherwise reach the
+    # assistant build (real embeddings download + real LLM client construction)
+    # before ever hitting this 400 check.
+    if not request.decision_id and not request.question:
+        raise HTTPException(status_code=400, detail="Provide either 'question' or 'decision_id'")
+
     assistant = app.dependency_overrides.get(_assistant_dependency, _assistant_dependency)()
 
     if request.decision_id:
@@ -77,8 +85,5 @@ def assistant_ask_endpoint(request: AssistantRequest) -> AssistantResponse:
             raise HTTPException(status_code=404, detail="decision_id not found in audit log")
         return AssistantResponse(answer=result["explanation"], sources=[])
 
-    if request.question:
-        result = assistant.answer_question(request.question)
-        return AssistantResponse(answer=result["answer"], sources=result["sources"])
-
-    raise HTTPException(status_code=400, detail="Provide either 'question' or 'decision_id'")
+    result = assistant.answer_question(request.question)
+    return AssistantResponse(answer=result["answer"], sources=result["sources"])
