@@ -1,6 +1,6 @@
 VENV := .venv
 
-.PHONY: setup lint test
+.PHONY: setup lint test serve
 
 setup:
 	python3 -m venv $(VENV)
@@ -12,3 +12,6 @@ lint:
 
 test:
 	$(VENV)/bin/pytest -q
+
+serve:
+	$(VENV)/bin/uvicorn bandit_platform.service.app:app --reload --port 8000
