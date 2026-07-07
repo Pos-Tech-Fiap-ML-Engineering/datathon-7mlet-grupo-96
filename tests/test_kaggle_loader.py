@@ -2,6 +2,7 @@ import hashlib
 import json
 from pathlib import Path
 
+import dotenv
 import pandas as pd
 import pytest
 
@@ -46,9 +47,9 @@ def test_write_manifest_records_sha256_and_source(tmp_path):
     assert on_disk == result
 
 
-def test_ensure_kaggle_api_token_raises_when_missing(monkeypatch, tmp_path):
+def test_ensure_kaggle_api_token_raises_when_missing(monkeypatch):
     monkeypatch.delenv("KAGGLE_API_TOKEN", raising=False)
-    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(dotenv, "load_dotenv", lambda *args, **kwargs: None)
     with pytest.raises(RuntimeError, match="KAGGLE_API_TOKEN"):
         _ensure_kaggle_api_token()
 
