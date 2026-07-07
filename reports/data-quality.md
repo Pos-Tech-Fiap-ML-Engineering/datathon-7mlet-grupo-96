@@ -10,10 +10,10 @@ O arquivo efetivamente hospedado nesse dataset Kaggle é `bank-additional-full.c
 — a variante estendida do UCI Bank Marketing, que inclui indicadores
 macroeconômicos (`emp.var.rate`, `cons.price.idx`, `cons.conf.idx`, `euribor3m`,
 `nr.employed`) e a coluna `day_of_week` no lugar de `day`. Essa variante **não
-contém a coluna `balance`** que o dicionário de dados original em
-`data/kaggle/README.md` descreve (esse dicionário foi escrito com base na variante
-clássica `bank-full.csv`, que não está presente neste dataset Kaggle específico).
-Vale atualizar essa documentação em uma tarefa futura para refletir o schema real.
+contém a coluna `balance`**, presente apenas na variante clássica `bank-full.csv`
+(que não está neste dataset Kaggle específico). O dicionário de dados em
+`data/kaggle/README.md` já reflete esse schema real: 21 colunas, sem `balance`,
+com `day_of_week` no lugar de `day` e os cinco indicadores macroeconômicos.
 
 ## Tamanho final e balanço de classes
 

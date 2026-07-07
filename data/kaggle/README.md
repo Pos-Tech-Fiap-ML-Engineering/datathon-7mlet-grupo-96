@@ -18,8 +18,8 @@ shell.
 .venv/bin/python -c "from bandit_platform.data.kaggle_loader import download_dataset; print(download_dataset('data/kaggle/raw'))"
 ```
 
-Alternativa manual: baixe o arquivo `bank-full.csv` (ou `bank.csv`) diretamente pela
-página do Kaggle acima e salve em `data/kaggle/raw/bank-full.csv`.
+Alternativa manual: baixe o arquivo `bank-additional-full.csv` diretamente pela
+página do Kaggle acima e salve em `data/kaggle/raw/bank-additional-full.csv`.
 
 O arquivo bruto não é versionado neste repositório (ver `.gitignore`); apenas o
 manifesto de proveniência (`sha256`, data do download, referência do dataset) seria
@@ -55,6 +55,7 @@ a variante clássica `bank-full.csv`; não existe coluna `balance` aqui).
 | euribor3m | numérico | Taxa Euribor de 3 meses (indicador diário) |
 | nr.employed | numérico | Número de empregados (indicador trimestral) |
 | y | categórica (yes/no) | Target: o cliente assinou o depósito a prazo? |
+| target | binário (0/1) | Derivado de `y` na camada processada (1 = yes, 0 = no) — só existe em `data/processed/`, não no CSV bruto do Kaggle |
 
 Os cinco indicadores macroeconômicos (`emp.var.rate` a `nr.employed`) são
 publicados pelo Banco de Portugal e associados ao mês/trimestre do contato — não
