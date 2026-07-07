@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from bandit_platform.service.app import _policy_dependency, app
+from bandit_platform.service.app import _assistant_dependency, _policy_dependency, app
 
 
 class _FixedPolicy:
@@ -58,3 +58,65 @@ def test_decide_endpoint_validates_age_range():
     )
 
     assert response.status_code == 422
+
+
+class _FakeAssistant:
+    def answer_question(self, question, k=3):
+        return {"answer": f"resposta para: {question}", "sources": ["doc.md"]}
+
+    def explain_decision(self, decision_id):
+        if decision_id == "known-id":
+            return {"found": True, "explanation": "explicacao", "record": {"arm_id": "cdb_12m"}}
+        return {"found": False, "explanation": None, "record": None}
+
+
+def test_assistant_ask_endpoint_answers_question():
+    app.dependency_overrides[_assistant_dependency] = lambda: _FakeAssistant()
+    client = TestClient(app)
+
+    try:
+        response = client.post("/assistant/ask", json={"question": "o que e suitability?"})
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    body = response.json()
+    assert "resposta para" in body["answer"]
+    assert body["sources"] == ["doc.md"]
+
+
+def test_assistant_ask_endpoint_explains_decision():
+    app.dependency_overrides[_assistant_dependency] = lambda: _FakeAssistant()
+    client = TestClient(app)
+
+    try:
+        response = client.post("/assistant/ask", json={"decision_id": "known-id"})
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    assert response.json()["answer"] == "explicacao"
+
+
+def test_assistant_ask_endpoint_requires_question_or_decision_id():
+    app.dependency_overrides[_assistant_dependency] = lambda: _FakeAssistant()
+    client = TestClient(app)
+
+    try:
+        response = client.post("/assistant/ask", json={})
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 400
+
+
+def test_assistant_ask_endpoint_reports_decision_not_found():
+    app.dependency_overrides[_assistant_dependency] = lambda: _FakeAssistant()
+    client = TestClient(app)
+
+    try:
+        response = client.post("/assistant/ask", json={"decision_id": "unknown-id"})
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 404

@@ -17,3 +17,13 @@ class DecisionResponse(BaseModel):
     reason_code: str
     policy_version: str
     timestamp: str
+
+
+class AssistantRequest(BaseModel):
+    question: str | None = None
+    decision_id: str | None = None
+
+
+class AssistantResponse(BaseModel):
+    answer: str
+    sources: list[str] = []

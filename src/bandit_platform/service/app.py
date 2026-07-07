@@ -5,9 +5,14 @@ from pathlib import Path
 
 from fastapi import FastAPI
 
+from bandit_platform.assistant.explain import explain_decision
+from bandit_platform.assistant.knowledge_base import build_knowledge_base
+from bandit_platform.assistant.llm import get_chat_model
+from bandit_platform.assistant.qa import answer_question
 from bandit_platform.service.active_policy import get_active_policy
 from bandit_platform.service.core import decide
-from bandit_platform.service.schemas import DecisionRequest, DecisionResponse
+from bandit_platform.service.schemas import AssistantRequest, AssistantResponse, DecisionRequest, DecisionResponse
+from fastapi import HTTPException
 
 AUDIT_LOG_PATH = Path("logs/decisions.jsonl")
 
@@ -36,3 +41,44 @@ def decide_endpoint(request: DecisionRequest) -> DecisionResponse:
     policy, policy_version = policy_provider()
     result = decide(request.model_dump(), policy, policy_version, AUDIT_LOG_PATH)
     return DecisionResponse(**asdict(result))
+
+
+class _Assistant:
+    def __init__(self, vector_store, llm, audit_log_path):
+        self._vector_store = vector_store
+        self._llm = llm
+        self._audit_log_path = audit_log_path
+
+    def answer_question(self, question: str, k: int = 3) -> dict:
+        return answer_question(question, self._vector_store, self._llm, k=k)
+
+    def explain_decision(self, decision_id: str) -> dict:
+        return explain_decision(decision_id, self._audit_log_path, self._llm)
+
+
+_ASSISTANT_CACHE: dict[str, _Assistant] = {}
+
+
+def _assistant_dependency() -> _Assistant:
+    if "default" not in _ASSISTANT_CACHE:
+        vector_store = build_knowledge_base()
+        llm = get_chat_model()
+        _ASSISTANT_CACHE["default"] = _Assistant(vector_store, llm, AUDIT_LOG_PATH)
+    return _ASSISTANT_CACHE["default"]
+
+
+@app.post("/assistant/ask", response_model=AssistantResponse)
+def assistant_ask_endpoint(request: AssistantRequest) -> AssistantResponse:
+    assistant = app.dependency_overrides.get(_assistant_dependency, _assistant_dependency)()
+
+    if request.decision_id:
+        result = assistant.explain_decision(request.decision_id)
+        if not result["found"]:
+            raise HTTPException(status_code=404, detail="decision_id not found in audit log")
+        return AssistantResponse(answer=result["explanation"], sources=[])
+
+    if request.question:
+        result = assistant.answer_question(request.question)
+        return AssistantResponse(answer=result["answer"], sources=result["sources"])
+
+    raise HTTPException(status_code=400, detail="Provide either 'question' or 'decision_id'")
