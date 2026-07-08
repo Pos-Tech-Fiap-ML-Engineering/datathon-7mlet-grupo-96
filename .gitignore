@@ -22,6 +22,9 @@ htmlcov/
 mlruns/
 mlartifacts/
 
+# Model registry (artefatos de politicas treinadas - nunca versionados)
+models/
+
 # Logs
 logs/
 
