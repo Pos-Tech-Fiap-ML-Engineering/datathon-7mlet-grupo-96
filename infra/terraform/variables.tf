@@ -15,3 +15,21 @@ variable "location" {
   type        = string
   default     = "brazilsouth"
 }
+
+variable "container_image_api" {
+  description = "Imagem da API publicada no GitHub Container Registry (ghcr.io) - evita o custo fixo do Azure Container Registry"
+  type        = string
+  default     = "ghcr.io/pos-tech-fiap-ml-engineering/datathon-7mlet-grupo-96-api:latest"
+}
+
+variable "container_image_streamlit" {
+  description = "Imagem do Streamlit publicada no GitHub Container Registry (ghcr.io)"
+  type        = string
+  default     = "ghcr.io/pos-tech-fiap-ml-engineering/datathon-7mlet-grupo-96-streamlit:latest"
+}
+
+variable "anthropic_api_key_secret_name" {
+  description = "Nome do segredo no Key Vault que guarda a ANTHROPIC_API_KEY"
+  type        = string
+  default     = "anthropic-api-key"
+}

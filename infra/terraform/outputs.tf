@@ -18,3 +18,11 @@ output "application_insights_connection_string" {
   value     = azurerm_application_insights.main.connection_string
   sensitive = true
 }
+
+output "api_url" {
+  value = "https://${azurerm_container_app.api.latest_revision_fqdn}"
+}
+
+output "streamlit_url" {
+  value = "https://${azurerm_container_app.streamlit.latest_revision_fqdn}"
+}
