@@ -13,7 +13,7 @@ nenhum foi estimado ou inventado.
 ## Comando executado e saída
 
 ```
-$ .venv/bin/python -c "<script do Step 1 da task brief>"
+$ poetry run python -c "<script do Step 1 da task brief>"
 baseline
   accepted decisions: 3318
   cumulative reward: 601.0

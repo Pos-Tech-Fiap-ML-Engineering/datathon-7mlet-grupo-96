@@ -29,9 +29,9 @@ governança). Não são usados dados reais de clientes.
 - Nuvem-alvo: exclusivamente Azure, com Terraform para IaC.
 
 O raciocínio completo por trás de cada escolha (alternativas consideradas,
-trade-offs) será detalhado no relatório técnico da Etapa 8
+trade-offs) está detalhado no relatório técnico da Etapa 8
 (`reports/technical-report.md`) e na arquitetura-alvo da Etapa 6
-(`docs/architecture-azure.md`), à medida que essas etapas forem entregues.
+(`docs/architecture-azure.md`).
 
 ## Como executar localmente
 
@@ -40,32 +40,32 @@ Pré-requisito: Python 3.11 ou superior.
 ```bash
 git clone <url-do-repositorio>
 cd datathon-7mlet-grupo-96
-make setup   # cria .venv e instala o pacote em modo editavel + deps de dev
-make test    # roda a suite de testes automatizados
+poetry install --with dev        # cria o ambiente e instala todas as dependências
+poetry run poe test              # roda a suite de testes
 ```
 
 Para confirmar o ponto de entrada da CLI:
 
 ```bash
-.venv/bin/bandit-cli --version
+poetry run bandit-cli --version
 ```
 
 Para obter uma decisão via CLI, dado um contexto de cliente:
 
 ```bash
-.venv/bin/bandit-cli decide --context '{"job":"admin.","age":35,"poutcome":"nonexistent","default":"no","previous":2}'
+poetry run bandit-cli decide --context '{"job":"admin.","age":35,"poutcome":"nonexistent","default":"no","previous":2}'
 ```
 
 Para subir a API (FastAPI, contrato oficial de decisão) em `http://127.0.0.1:8000`:
 
 ```bash
-make serve
+poetry run poe serve
 ```
 
 Para rodar a demo visual (Streamlit):
 
 ```bash
-make demo
+poetry run poe demo
 ```
 
 ## Mapa de pastas
@@ -80,6 +80,7 @@ src/bandit_platform/
   evaluation/    # simulacao offline, metricas e golden set (Etapa 4)
   service/       # FastAPI, contrato de decisao, active policy, audit log (Etapa 5)
   assistant/     # assistente LLM/RAG (LangChain + Claude) sobre policy docs e reports (Etapa 5)
+  mlops/         # registro de politicas, criterios de promocao, drift, tracking MLflow (Etapa 7)
   cli.py         # ponto de entrada da CLI (bandit-cli)
 streamlit_app/   # demo visual em Streamlit (Etapa 5)
 data/
@@ -88,28 +89,24 @@ data/
   synthetic_enrichment/  # policy_docs (usados pelo RAG) e eventos sinteticos
   golden_set/            # casos de avaliacao (evaluation_cases.jsonl)
 notebooks/       # EDA (01_eda.ipynb)
-reports/         # relatorios tecnicos escritos (data-generation, data-quality, algorithm-comparison, offline-evaluation)
-docs/            # contrato de servico (service-contract.md)
+reports/         # relatorios tecnicos escritos (data-generation, data-quality, algorithm-comparison,
+                 # offline-evaluation, technical-report — Etapa 8)
+docs/            # contrato de servico, arquitetura-alvo Azure (Etapa 6), ciclo de vida MLOps (Etapa 7),
+                 # model card, system card, plano LGPD, material de pitch e demo (Etapa 8)
+infra/terraform/ # infraestrutura como codigo para a arquitetura-alvo Azure (Etapa 6)
 tests/           # suite de testes automatizados (pytest)
-Makefile         # comandos de setup/lint/test/serve/demo
-pyproject.toml   # dependencias, versao de Python, ponto de entrada da CLI
+pyproject.toml   # dependencias, versao de Python, ponto de entrada da CLI e tasks Poetry
 .env.example     # variaveis de ambiente necessarias (sem valores reais)
 ```
 
-Ainda planejado (Etapas 6-8): `infra/terraform/` (arquitetura-alvo Azure) e
-documentos adicionais em `docs/` e `reports/` — arquitetura Azure, model card,
-system card, plano LGPD e o relatório técnico final
-(`reports/technical-report.md`).
-
 ## Comandos disponíveis
 
-| Comando | O que faz |
-|---|---|
-| `make setup` | Cria `.venv` e instala o pacote em modo editável com dependências de desenvolvimento |
-| `make lint` | Roda `ruff check` sobre `src/` e `tests/` |
-| `make test` | Roda a suite de testes automatizados (`pytest`) |
-| `make serve` | Sobe a API FastAPI (`uvicorn`, com reload) em `http://127.0.0.1:8000` |
-| `make demo` | Roda a demo visual em Streamlit (`streamlit_app/app.py`) |
+| Comando                  | O que faz                                                              |
+|--------------------------|------------------------------------------------------------------------|
+| `poetry run poe lint`    | Roda `ruff check` sobre `src/` e `tests/`                              |
+| `poetry run poe test`    | Roda a suite de testes automatizados (`pytest`)                        |
+| `poetry run poe serve`   | Sobe a API FastAPI (`uvicorn`, com reload) em `http://127.0.0.1:8000` |
+| `poetry run poe demo`    | Roda a demo visual em Streamlit (`streamlit_app/app.py`)               |
 
 ## Status do projeto
 
@@ -118,12 +115,18 @@ Concluído:
 - Etapa 0 — organização do projeto (scaffolding, testes de exemplo, automação de setup/lint/test, CI).
 - Etapa 1 — carregamento e limpeza dos dados Kaggle, com EDA (`notebooks/01_eda.ipynb`).
 - Etapa 2 — enriquecimento sintético: catálogo de ofertas, eventos e policy docs (`data/synthetic_enrichment/`).
-- Etapa 3 — algoritmos de decisão: baseline determinístico, Thompson Sampling contextual (com warm start via propensão em PyTorch) e LinUCB.
-- Etapa 4 — avaliação offline com golden set (`data/golden_set/evaluation_cases.jsonl`) e relatórios técnicos de comparação de algoritmos.
-- Etapa 5 — serviço FastAPI (contrato oficial) + CLI (`bandit-cli`) + demo Streamlit, com assistente LLM/RAG (LangChain + Claude) sobre os policy docs e os relatórios técnicos.
-- Etapa 6 — arquitetura-alvo Azure e infraestrutura como código (Terraform) (`docs/architecture-azure.md`, `infra/terraform/`).
-- Etapa 7 — ciclo de vida MLOps (tracking, retraining, monitoramento) (`docs/mlops-lifecycle.md`, `src/bandit_platform/mlops/`).
-- Etapa 8 — governança, relatório técnico final e pitch (model card, system card, plano LGPD, relatório técnico e material de demo day).
+- Etapa 3 — algoritmos de decisão: baseline determinístico, Thompson Sampling contextual (com warm start via propensão
+  em PyTorch) e LinUCB.
+- Etapa 4 — avaliação offline com golden set (`data/golden_set/evaluation_cases.jsonl`) e relatórios técnicos de
+  comparação de algoritmos.
+- Etapa 5 — serviço FastAPI (contrato oficial) + CLI (`bandit-cli`) + demo Streamlit, com assistente LLM/RAG (
+  LangChain + Claude) sobre os policy docs e os relatórios técnicos.
+- Etapa 6 — arquitetura-alvo Azure e infraestrutura como código (Terraform) (`docs/architecture-azure.md`,
+  `infra/terraform/`).
+- Etapa 7 — ciclo de vida MLOps (tracking, retraining, monitoramento) (`docs/mlops-lifecycle.md`,
+  `src/bandit_platform/mlops/`).
+- Etapa 8 — governança, relatório técnico final e pitch (model card, system card, plano LGPD, relatório técnico e
+  material de demo day).
 
 ## Licença
 

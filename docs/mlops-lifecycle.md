@@ -53,12 +53,12 @@ passa nos três critérios. Um humano pode aprovar mesmo assim via
 manifesto (`approved_via_override: true`) — nunca some silenciosamente. Um
 candidato que falhou os critérios já é marcado como `rejected`
 automaticamente pelo próprio `retrain`; um humano também pode rejeitar
-manualmente a qualquer momento com `bandit-cli reject --version-id <ID>
+manualmente a qualquer momento com `poetry run bandit-cli reject --version-id <ID>
 --reason "<motivo>"`, independente do resultado automático.
 
 ## Gate de aprovação humana estruturada
 
-`bandit-cli approve --version-id <ID> --approver "<nome>" --reason "<motivo>"`
+`poetry run bandit-cli approve --version-id <ID> --approver "<nome>" --reason "<motivo>"`
 é o único caminho para um candidato avançar de `pending_approval` para
 `approved`. `bandit-cli promote` recusa promover qualquer versão que não
 esteja `approved` (`ValueError` explícito). Isso significa que nenhuma
@@ -69,8 +69,8 @@ override de um candidato que falhou os critérios automáticos.
 
 ## Rollback
 
-`bandit-cli rollback` (sem argumentos) reverte para a versão anteriormente
-ativa, usando o histórico mantido pelo registro. `bandit-cli rollback --to
+`poetry run bandit-cli rollback` (sem argumentos) reverte para a versão anteriormente
+ativa, usando o histórico mantido pelo registro. `poetry run bandit-cli rollback --to
 <version_id>` permite voltar a qualquer versão específica já registrada.
 Não há limite de quantas vezes se pode reverter — cada rollback também
 empilha a versão anterior no histórico, então é possível ir e voltar entre
@@ -116,7 +116,7 @@ parâmetros (`algorithm`, `seed`, `prior_strength`/`alpha`), métricas
 (`golden_set_safety_rate`, `golden_set_accuracy`, `mean_regret`,
 `accepted_decisions`) e tags (`version_id`, `stage=retrain`) — permitindo
 cruzar qualquer run do MLflow com seu registro correspondente no Policy
-Registry pelo `version_id`. Para inspecionar visualmente, rode `mlflow ui`
+Registry pelo `version_id`. Para inspecionar visualmente, rode `poetry run mlflow ui`
 em um terminal separado na raiz do projeto e abra `http://localhost:5000`.
 
 ## Exemplo executado
@@ -132,7 +132,7 @@ subcomando foi mantido.
 ### 1. Formalizar a política atual (Thompson Sampling) como v1 no registro
 
 ```bash
-.venv/bin/bandit-cli retrain --algorithm thompson_sampling --seed 2 --prior-strength 4.0 --notes "Formalizacao da politica de producao atual no registro"
+poetry run bandit-cli retrain --algorithm thompson_sampling --seed 2 --prior-strength 4.0 --notes "Formalizacao da politica de producao atual no registro"
 ```
 
 ```json
@@ -156,7 +156,7 @@ em `reports/algorithm-comparison.md`. Em seguida, aprovação humana e
 promoção a produção:
 
 ```bash
-.venv/bin/bandit-cli approve --version-id thompson_sampling_80375476 --approver "Grupo 96" --reason "Politica ja validada nas Etapas 3-4 (reports/algorithm-comparison.md)"
+poetry run bandit-cli approve --version-id thompson_sampling_80375476 --approver "Grupo 96" --reason "Politica ja validada nas Etapas 3-4 (reports/algorithm-comparison.md)"
 ```
 
 ```json
@@ -180,7 +180,7 @@ promoção a produção:
 ```
 
 ```bash
-.venv/bin/bandit-cli promote --version-id thompson_sampling_80375476
+poetry run bandit-cli promote --version-id thompson_sampling_80375476
 ```
 
 ```json
@@ -212,7 +212,7 @@ promoção a produção:
 ### 2. Testar uma nova hipótese: LinUCB conservador (alpha=5.0)
 
 ```bash
-.venv/bin/bandit-cli retrain --algorithm linucb --alpha 5.0 --seed 3 --notes "Hipotese: LinUCB conservador para reduzir variancia de exposicao"
+poetry run bandit-cli retrain --algorithm linucb --alpha 5.0 --seed 3 --notes "Hipotese: LinUCB conservador para reduzir variancia de exposicao"
 ```
 
 ```json
@@ -245,7 +245,7 @@ tentativa de aprovação.
 Tentativa de aprovar `linucb_50db7752` sem `--override`:
 
 ```bash
-.venv/bin/bandit-cli approve --version-id linucb_50db7752 --approver "Grupo 96" --reason "tentativa sem override"
+poetry run bandit-cli approve --version-id linucb_50db7752 --approver "Grupo 96" --reason "tentativa sem override"
 ```
 
 ```json
@@ -262,7 +262,7 @@ candidato — ver decisão abaixo), o mesmo candidato foi aprovado com
 decisão de negócio:
 
 ```bash
-.venv/bin/bandit-cli approve --version-id linucb_50db7752 --approver "Grupo 96" --reason "Override apenas para fins de demonstracao do mecanismo de aprovacao excepcional: mean_regret 0.037352 excede o teto absoluto (0.03) e a tolerancia de regressao vs. a politica ativa (10%). Decisao do grupo: NAO promover este candidato para producao; pivotar para uma nova hipotese (Thompson Sampling com priors mais fracos)." --override
+poetry run bandit-cli approve --version-id linucb_50db7752 --approver "Grupo 96" --reason "Override apenas para fins de demonstracao do mecanismo de aprovacao excepcional: mean_regret 0.037352 excede o teto absoluto (0.03) e a tolerancia de regressao vs. a politica ativa (10%). Decisao do grupo: NAO promover este candidato para producao; pivotar para uma nova hipotese (Thompson Sampling com priors mais fracos)." --override
 ```
 
 ```json
@@ -294,7 +294,7 @@ antes de decidir o que vai para produção.
 ### 4. Segunda hipótese: Thompson Sampling com priors mais fracos
 
 ```bash
-.venv/bin/bandit-cli retrain --algorithm thompson_sampling --prior-strength 1.0 --seed 2 --notes "Hipotese: priors mais fracos para convergencia mais rapida em segmentos novos"
+poetry run bandit-cli retrain --algorithm thompson_sampling --prior-strength 1.0 --seed 2 --notes "Hipotese: priors mais fracos para convergencia mais rapida em segmentos novos"
 ```
 
 ```json
@@ -317,7 +317,7 @@ tolerância de 10%). Aprovação (sem necessidade de override, já que o status
 é `pending_approval`, não `rejected`) e promoção:
 
 ```bash
-.venv/bin/bandit-cli approve --version-id thompson_sampling_ea40a2b5 --approver "Grupo 96" --reason "Passou nos criterios de promocao, regret dentro da tolerancia"
+poetry run bandit-cli approve --version-id thompson_sampling_ea40a2b5 --approver "Grupo 96" --reason "Passou nos criterios de promocao, regret dentro da tolerancia"
 ```
 
 ```json
@@ -341,7 +341,7 @@ tolerância de 10%). Aprovação (sem necessidade de override, já que o status
 ```
 
 ```bash
-.venv/bin/bandit-cli promote --version-id thompson_sampling_ea40a2b5
+poetry run bandit-cli promote --version-id thompson_sampling_ea40a2b5
 ```
 
 ```json
@@ -376,7 +376,7 @@ tolerância de 10%). Aprovação (sem necessidade de override, já que o status
 ### 5. Monitorar drift do candidato recém-promovido
 
 ```bash
-.venv/bin/bandit-cli monitor-drift --candidate-version thompson_sampling_ea40a2b5
+poetry run bandit-cli monitor-drift --candidate-version thompson_sampling_ea40a2b5
 ```
 
 ```json
@@ -422,7 +422,7 @@ política que está de fato servindo produção no momento.
 ### 6. Simular um problema em produção e reverter
 
 ```bash
-.venv/bin/bandit-cli rollback
+poetry run bandit-cli rollback
 ```
 
 ```json
@@ -453,7 +453,7 @@ política que está de fato servindo produção no momento.
 ```
 
 ```bash
-.venv/bin/bandit-cli policy-status
+poetry run bandit-cli policy-status
 ```
 
 ```json
@@ -551,7 +551,7 @@ A CLI `mlflow runs list` desta versão não aceita `--experiment-name`
 foi necessário:
 
 ```bash
-.venv/bin/mlflow runs list --experiment-name bandit-platform
+poetry run mlflow runs list --experiment-name bandit-platform
 ```
 
 ```
@@ -562,7 +562,7 @@ Error: No such option '--experiment-name'. Did you mean '--experiment-id'?
 ```
 
 ```bash
-.venv/bin/python -c "
+poetry run python -c "
 import mlflow
 c = mlflow.tracking.MlflowClient()
 exp = c.get_experiment_by_name('bandit-platform')

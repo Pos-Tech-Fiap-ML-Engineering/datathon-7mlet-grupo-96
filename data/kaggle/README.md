@@ -15,7 +15,7 @@ pelo próprio loader (via `python-dotenv`), sem precisar exportá-lo manualmente
 shell.
 
 ```bash
-.venv/bin/python -c "from bandit_platform.data.kaggle_loader import download_dataset; print(download_dataset('data/kaggle/raw'))"
+poetry run python -c "from bandit_platform.data.kaggle_loader import download_dataset; print(download_dataset('data/kaggle/raw'))"
 ```
 
 Alternativa manual: baixe o arquivo `bank-additional-full.csv` diretamente pela
