@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.git/
+.planning/
+.idea/
+logs/
+mlruns/
+data/kaggle/raw/
+.env
+infra/terraform/.terraform/
+infra/terraform/*.tfstate*
