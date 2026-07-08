@@ -4,7 +4,7 @@ Este documento descreve como uma nova política (candidata) sai de
 experimento para produção controlada nesta plataforma: quem pode promovê-la,
 sob quais critérios, como reverter se algo der errado, e como o desempenho é
 monitorado ao longo do tempo. Todo o mecanismo abaixo é código real e
-executável (`src/bandit_platform/mlops/`, seis subcomandos de
+executável (`src/bandit_platform/mlops/`, sete subcomandos de
 `bandit-cli`) — não é apenas um plano narrativo.
 
 ## Visão geral
@@ -50,7 +50,11 @@ números já estabelecidos em `reports/algorithm-comparison.md` e
 Um candidato só é aprovado automaticamente/manualmente sem override quando
 passa nos três critérios. Um humano pode aprovar mesmo assim via
 `--override` explícito, mas isso fica permanentemente registrado no
-manifesto (`approved_via_override: true`) — nunca some silenciosamente.
+manifesto (`approved_via_override: true`) — nunca some silenciosamente. Um
+candidato que falhou os critérios já é marcado como `rejected`
+automaticamente pelo próprio `retrain`; um humano também pode rejeitar
+manualmente a qualquer momento com `bandit-cli reject --version-id <ID>
+--reason "<motivo>"`, independente do resultado automático.
 
 ## Gate de aprovação humana estruturada
 
