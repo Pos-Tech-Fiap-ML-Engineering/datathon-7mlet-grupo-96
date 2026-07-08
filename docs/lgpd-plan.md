@@ -30,10 +30,13 @@ desenho prospectivo, não como descrição do sistema hoje.
   emp.var.rate, cons.price.idx, cons.conf.idx, euribor3m, nr.employed, y,
   target`) nem no schema da API (`DecisionRequest`: `job, age, poutcome,
   default, previous`).
-- **Log de auditoria**: `logs/decisions.jsonl` grava o contexto da decisão
-  (5 campos comportamentais não-identificantes) mais um `decision_id`
-  (UUID4 interno, chave de correlação da aplicação — não um identificador
-  pessoal).
+- **Log de auditoria**: `logs/decisions.jsonl` grava, por decisão,
+  `decision_id, arm_id, reason_code, policy_version, timestamp` mais o
+  `context` (os mesmos 5 campos comportamentais não-identificantes do
+  schema da API). O `decision_id` é um UUID4 interno, chave de correlação
+  da aplicação — não um identificador pessoal; os demais campos de
+  metadados (`arm_id`, `reason_code`, `policy_version`, `timestamp`)
+  também não são dado pessoal.
 - **Segredos**: `ANTHROPIC_API_KEY`/`KAGGLE_API_TOKEN` ficam em `.env`
   (fora do git, `.gitignore`), nunca commitados; `.env.example` documenta
   as variáveis necessárias sem valores reais.
@@ -104,9 +107,12 @@ hardening antes de qualquer uso real.
 - **Cenário real do projeto hoje**: o principal risco de incidente é
   exposição das chaves de API em `.env` — já mitigado por mantê-lo fora do
   git e fornecer `.env.example` sem valores reais; em caso de exposição
-  acidental, o procedimento é revogar e regerar a chave imediatamente
-  (Anthropic/Kaggle) e, na arquitetura-alvo Azure, rotacionar o segredo no
-  Key Vault.
+  acidental, o procedimento hoje é revogar e regerar a chave imediatamente
+  (Anthropic/Kaggle). A rotação via Azure Key Vault descrita no
+  procedimento prospectivo abaixo **ainda não está disponível** — o Key
+  Vault existe apenas como Terraform (`infra/terraform/security.tf`), sem
+  `terraform apply` executado (ver `docs/architecture-azure.md`,
+  `docs/system-card.md`).
 - **Procedimento para uma implantação real** (prospectivo): (1) conter —
   revogar credenciais expostas via Key Vault/Managed Identity; (2) avaliar
   escopo usando a trilha do log de auditoria (`decision_id`/`timestamp`);
