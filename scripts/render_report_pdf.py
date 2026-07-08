@@ -15,6 +15,12 @@ PAGE_WIDTH_CHARS = 100
 LINES_PER_PAGE = 46
 
 
+def _strip_emphasis(text: str) -> str:
+    text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
+    text = re.sub(r"(?<!\*)\*([^*]+)\*(?!\*)", r"\1", text)
+    return text
+
+
 def _wrap_paragraph(text: str) -> list[str]:
     if not text.strip():
         return [""]
@@ -28,7 +34,7 @@ def markdown_to_lines(markdown_text: str) -> list[str]:
     markdown completo."""
     lines: list[str] = []
     for raw_line in markdown_text.split("\n"):
-        line = raw_line.rstrip()
+        line = _strip_emphasis(raw_line.rstrip())
         if line.startswith("# "):
             lines.append(line[2:].upper())
             lines.append("=" * min(len(line[2:]), PAGE_WIDTH_CHARS))
@@ -40,7 +46,14 @@ def markdown_to_lines(markdown_text: str) -> list[str]:
             lines.append("")
             lines.append(line[4:])
         elif line.startswith("|"):
-            lines.append(line)
+            if len(line) <= PAGE_WIDTH_CHARS:
+                lines.append(line)
+            else:
+                # Nunca truncar: uma linha de tabela mais larga que a
+                # pagina e quebrada (perde o alinhamento de colunas, mas
+                # preserva todo o conteudo - preservar informacao importa
+                # mais do que a tabela ficar bonita).
+                lines.extend(textwrap.wrap(line, width=PAGE_WIDTH_CHARS, break_long_words=False) or [line])
         elif line.startswith("- ") or line.startswith("* "):
             lines.extend(_wrap_paragraph_indented(line[2:], "  - "))
         elif re.match(r"^\d+\. ", line):
