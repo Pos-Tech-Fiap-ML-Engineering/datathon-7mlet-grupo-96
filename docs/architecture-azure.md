@@ -65,7 +65,7 @@ graph TB
 | Observabilidade | Application Insights + Log Analytics Workspace | Rastreamento de requisições, exceções e latência; base para alertas de drift/erro na Etapa 7. |
 | Segurança/Segredos | Azure Key Vault (RBAC, `Key Vault Secrets User`) | `ANTHROPIC_API_KEY` nunca em variável de ambiente em texto plano — lida do Key Vault em tempo de execução. |
 | Identidade | User-Assigned Managed Identity | Elimina a necessidade de qualquer credencial estática entre os Container Apps e o Key Vault. |
-| Governança | Orçamento e alertas (ver "FinOps" abaixo) | Guarda-corpo de custo, alinhado à exigência de "menor custo possível". |
+| Governança | `azurerm_consumption_budget_resource_group` (Terraform) | Alerta de orçamento mensal real (não só documentado): limite de US$20/mês com notificação em 80% de consumo, acima da estimativa de ~US$5-10/mês (ver "FinOps" abaixo). |
 | Imagens de container | GitHub Container Registry (gratuito) | Decisão deliberada de **não** usar Azure Container Registry (~US$5/mês de taxa fixa mesmo sem uso) — GHCR é gratuito para os volumes desta demo. |
 
 ## Plano de gestão de segredos e credenciais
@@ -78,7 +78,7 @@ graph TB
    de segredos, nunca escrita, listagem completa ou exclusão.
 4. Em tempo de execução, a aplicação usaria o SDK `azure-identity` +
    `azure-keyvault-secrets` (`DefaultAzureCredential`, que detecta a Managed
-   Identity automaticamardente) para buscar `ANTHROPIC_API_KEY` — **esse código
+   Identity automaticamente) para buscar `ANTHROPIC_API_KEY` — **esse código
    ainda não existe no `bandit_platform.assistant.llm`** (que hoje lê a chave
    de `.env` via `python-dotenv`, adequado para desenvolvimento local). Migrar
    para o Key Vault é trabalho futuro citado como limitação explícita aqui,
@@ -92,9 +92,9 @@ graph TB
 1. Operador roda `az login` (ou configura um Service Principal) — pré-requisito
    que este projeto ainda não tem configurado.
 2. `cd infra/terraform && terraform init && terraform plan` — revisar o plano.
-3. Build e push das imagens Docker (`Dockerfile.api`, `Dockerfile.streamlit`,
-   Etapa 6 Task 1) para o GitHub Container Registry via GitHub Actions
-   (extensão futura do workflow de CI já existente desde a Etapa 0).
+3. Build e push das imagens Docker (`Dockerfile.api`, `Dockerfile.streamlit`)
+   para o GitHub Container Registry via GitHub Actions (extensão futura do
+   workflow de CI já existente desde a Etapa 0).
 4. `terraform apply` — **só roda com autorização explícita do usuário no
    momento**, nunca automaticamente.
 5. Popular o Key Vault com `ANTHROPIC_API_KEY` manualmente (`az keyvault
@@ -139,6 +139,14 @@ partir de ~US$13/mês mesmo ocioso — por isso a escolha por Container Apps com
   (`python-dotenv`), não do Key Vault — a migração para
   `DefaultAzureCredential` + `azure-keyvault-secrets` é necessária antes de um
   deploy real (ver "Plano de gestão de segredos" acima).
+- O Blob Storage (`azurerm_storage_account.main`) é provisionado pelo
+  Terraform, mas os Container Apps (`compute.tf`) ainda não recebem nenhuma
+  connection string ou variável de ambiente que aponte para ele — a
+  aplicação (`src/bandit_platform/service/active_policy.py` e módulos
+  relacionados) hoje lê os dados de arquivos CSV embutidos na imagem Docker
+  via `COPY`, não do Blob Storage em tempo de execução. Migrar a leitura de
+  dados para o Blob Storage é trabalho futuro, junto com a migração do
+  Key Vault citada acima.
 - `terraform apply` nunca foi executado de verdade neste projeto — só
   `init`/`validate`/`fmt` — porque o projeto não tem uma assinatura Azure
   configurada até o momento deste documento.

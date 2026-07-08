@@ -33,3 +33,8 @@ variable "anthropic_api_key_secret_name" {
   type        = string
   default     = "anthropic-api-key"
 }
+
+variable "budget_notification_email" {
+  description = "E-mail para notificações do orçamento mensal (definido via .tfvars local, nunca versionado)"
+  type        = string
+}
