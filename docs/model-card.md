@@ -113,12 +113,14 @@ foi feita e fica registrada como trabalho futuro.
 ## Limitações técnicas
 
 - O guard de suitability implementado em código
-  (`src/bandit_platform/policies/suitability.py`) cobre apenas 2 das 4
-  regras documentadas em `data/synthetic_enrichment/policy_docs/`: bloqueio
-  de crédito/investimento quando `default=yes`, e bloqueio de `cdb_24m`
-  quando `previous<=0`. As regras "não repetir oferta recusada na mesma
-  campanha" e "validade de 30 dias da taxa promocional" estão documentadas
-  mas **não implementadas** (`reports/offline-evaluation.md` §7) — ver
+  (`src/bandit_platform/policies/suitability.py`) cobre apenas duas das
+  regras de negócio documentadas em `data/synthetic_enrichment/policy_docs/`
+  (que reúnem bem mais de duas regras ao todo, entre os 5 documentos):
+  bloqueio de crédito/investimento quando `default=yes`, e bloqueio de
+  `cdb_24m` quando `previous<=0`. Entre as regras documentadas mas **não
+  implementadas**, destacam-se "não repetir oferta recusada na mesma
+  campanha" e "validade de 30 dias da taxa promocional"
+  (`reports/offline-evaluation.md` §7) — ver
   `docs/system-card.md` para o cenário de risco correspondente.
 - O golden set é curado (22 casos), não é uma amostra estatisticamente
   representativa da população real de decisões.
