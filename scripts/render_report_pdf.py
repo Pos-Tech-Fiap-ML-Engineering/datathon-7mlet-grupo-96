@@ -13,6 +13,7 @@ from matplotlib import pyplot as plt
 
 PAGE_WIDTH_CHARS = 100
 LINES_PER_PAGE = 46
+PAGE_BREAK = "\x0c"
 
 
 def _strip_emphasis(text: str) -> str:
@@ -36,6 +37,12 @@ def markdown_to_lines(markdown_text: str) -> list[str]:
     for raw_line in markdown_text.split("\n"):
         line = _strip_emphasis(raw_line.rstrip())
         if line.startswith("# "):
+            # Cada titulo de nivel 1 comeca uma pagina nova - documentos com
+            # um unico "# Titulo" (como o relatorio tecnico) fluem
+            # continuamente como antes; documentos com varios "# Slide N"
+            # (como o deck do pitch) ganham uma pagina por slide.
+            if lines:
+                lines.append(PAGE_BREAK)
             lines.append(line[2:].upper())
             lines.append("=" * min(len(line[2:]), PAGE_WIDTH_CHARS))
         elif line.startswith("## "):
@@ -73,13 +80,29 @@ def _wrap_paragraph_indented(text: str, prefix: str) -> list[str]:
     return result
 
 
+def _chunk_into_pages(lines: list[str]) -> list[list[str]]:
+    return [lines[i : i + LINES_PER_PAGE] for i in range(0, len(lines), LINES_PER_PAGE)] or [[""]]
+
+
 def render_markdown_pdf(markdown_path: str | Path, output_path: str | Path) -> int:
     """Le um arquivo markdown, pagina o conteudo e escreve um PDF real via
     matplotlib. Retorna o numero de paginas geradas."""
     text = Path(markdown_path).read_text()
     lines = markdown_to_lines(text)
 
-    pages = [lines[i : i + LINES_PER_PAGE] for i in range(0, len(lines), LINES_PER_PAGE)] or [[""]]
+    pages: list[list[str]] = []
+    current_block: list[str] = []
+    for line in lines:
+        if line == PAGE_BREAK:
+            if current_block:
+                pages.extend(_chunk_into_pages(current_block))
+            current_block = []
+        else:
+            current_block.append(line)
+    if current_block:
+        pages.extend(_chunk_into_pages(current_block))
+    if not pages:
+        pages = [[""]]
 
     with PdfPages(output_path) as pdf:
         for page_lines in pages:
