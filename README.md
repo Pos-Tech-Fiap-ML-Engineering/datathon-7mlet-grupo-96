@@ -121,12 +121,9 @@ Concluído:
 - Etapa 3 — algoritmos de decisão: baseline determinístico, Thompson Sampling contextual (com warm start via propensão em PyTorch) e LinUCB.
 - Etapa 4 — avaliação offline com golden set (`data/golden_set/evaluation_cases.jsonl`) e relatórios técnicos de comparação de algoritmos.
 - Etapa 5 — serviço FastAPI (contrato oficial) + CLI (`bandit-cli`) + demo Streamlit, com assistente LLM/RAG (LangChain + Claude) sobre os policy docs e os relatórios técnicos.
-
-Pendente:
-
-- Etapa 6 — arquitetura-alvo Azure e infraestrutura como código (Terraform).
-- Etapa 7 — ciclo de vida MLOps (tracking, retraining, monitoramento).
-- Etapa 8 — governança, relatório técnico final e pitch.
+- Etapa 6 — arquitetura-alvo Azure e infraestrutura como código (Terraform) (`docs/architecture-azure.md`, `infra/terraform/`).
+- Etapa 7 — ciclo de vida MLOps (tracking, retraining, monitoramento) (`docs/mlops-lifecycle.md`, `src/bandit_platform/mlops/`).
+- Etapa 8 — governança, relatório técnico final e pitch (model card, system card, plano LGPD, relatório técnico e material de demo day).
 
 ## Licença
 
