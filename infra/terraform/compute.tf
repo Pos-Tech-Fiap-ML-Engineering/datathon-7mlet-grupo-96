@@ -34,6 +34,14 @@ resource "azurerm_container_app" "api" {
         name  = "APPLICATIONINSIGHTS_CONNECTION_STRING"
         value = azurerm_application_insights.main.connection_string
       }
+      env {
+        name  = "KEY_VAULT_NAME"
+        value = azurerm_key_vault.main.name
+      }
+      env {
+        name  = "ANTHROPIC_API_KEY_SECRET_NAME"
+        value = var.anthropic_api_key_secret_name
+      }
     }
   }
 
@@ -71,6 +79,14 @@ resource "azurerm_container_app" "streamlit" {
       env {
         name  = "AZURE_CLIENT_ID"
         value = azurerm_user_assigned_identity.app.client_id
+      }
+      env {
+        name  = "KEY_VAULT_NAME"
+        value = azurerm_key_vault.main.name
+      }
+      env {
+        name  = "ANTHROPIC_API_KEY_SECRET_NAME"
+        value = var.anthropic_api_key_secret_name
       }
     }
   }

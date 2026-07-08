@@ -42,7 +42,6 @@ graph TB
 
     User -->|HTTPS| UI
     User -->|HTTPS| API
-    UI -->|chamada interna| API
     API -->|le/grava dados e logs| Blob
     API -->|RAG + geracao| Anthropic
     API -.->|autentica via| MI
@@ -53,13 +52,22 @@ graph TB
     GHCR -.->|imagem do container| UI
 ```
 
+Importante: a Interface (Streamlit) e a API **não se comunicam entre si em
+tempo de execução** — não há nenhuma chamada HTTP interna entre os dois
+Container Apps. Cada um embute de forma independente a mesma biblioteca
+`bandit_platform` (decisão de política, RAG, resposta a perguntas etc.), como
+o próprio `streamlit_app/app.py` evidencia ao importar `bandit_platform.service.core`
+diretamente em vez de fazer requisições HTTP. O Container App da API existe
+para servir clientes externos/programáticos (ex.: `POST /decide` via HTTP),
+não para ser consumido pelo Streamlit.
+
 ## Mapeamento de camadas
 
 | Camada | Serviço Azure | Justificativa |
 |---|---|---|
 | Compute | Azure Container Apps (Consumption, `min_replicas=0`) | Serverless: escala a zero sem tráfego, paga só pelo uso real — mais barato que App Service ou AKS para uma demo de baixo volume. |
-| API | Container App dedicado, ingress público HTTPS | Mesmo contrato já validado localmente (`docs/service-contract.md`, Etapa 5). |
-| Interface | Container App dedicado (Streamlit) | Separado da API para poder escalar/reiniciar independentemente. |
+| API | Container App dedicado, ingress público HTTPS | Serve clientes externos/programáticos com o mesmo contrato já validado localmente (`docs/service-contract.md`, Etapa 5) — não é chamada pelo Streamlit em tempo de execução. |
+| Interface | Container App dedicado (Streamlit) | Separado da API para poder escalar/reiniciar independentemente; embute a mesma biblioteca `bandit_platform` da API, sem dependência HTTP entre os dois Container Apps. |
 | Dados | Azure Blob Storage (Standard LRS) | Dados pequenos (poucos MB), não críticos, regeneráveis a partir do Kaggle + código sintético — LRS é a redundância mais barata. |
 | IA/RAG | Chamada direta à API Anthropic (fora do Azure) + índice `InMemoryVectorStore` reconstruído no início de cada container | Evita hospedar um banco vetorial dedicado para um corpus pequeno (ver `src/bandit_platform/assistant/knowledge_base.py` para a justificativa completa). |
 | Observabilidade | Application Insights + Log Analytics Workspace | Rastreamento de requisições, exceções e latência; base para alertas de drift/erro na Etapa 7. |
