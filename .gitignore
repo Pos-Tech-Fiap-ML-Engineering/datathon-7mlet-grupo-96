@@ -21,6 +21,7 @@ htmlcov/
 # MLflow
 mlruns/
 mlartifacts/
+mlflow.db
 
 # Model registry (artefatos de politicas treinadas - nunca versionados)
 models/
