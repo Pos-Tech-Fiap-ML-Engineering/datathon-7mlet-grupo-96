@@ -108,6 +108,149 @@ pyproject.toml   # dependencias, versao de Python, ponto de entrada da CLI e tas
 | `poetry run poe serve`   | Sobe a API FastAPI (`uvicorn`, com reload) em `http://127.0.0.1:8000` |
 | `poetry run poe demo`    | Roda a demo visual em Streamlit (`streamlit_app/app.py`)               |
 
+## Ciclo de vida MLOps — retreino, aprovação e promoção de políticas
+
+O ciclo completo é controlado pela CLI `bandit-cli`. Cada comando atualiza
+`models/registry/manifest.json` (registro de versões) e/ou o artefato
+`.joblib` da política treinada. O fluxo obrigatório é:
+
+```
+retrain  →  approve  →  promote  →  (monitor-drift / rollback)
+```
+
+### 1. Ver o estado atual
+
+```bash
+poetry run bandit-cli policy-status
+```
+
+Mostra a versão ativa, o histórico de versões anteriores (disponíveis para
+rollback) e o registro completo de todos os candidatos já criados.
+
+### 2. Retreinar um candidato
+
+```bash
+# Thompson Sampling
+poetry run bandit-cli retrain \
+  --algorithm thompson_sampling \
+  --prior-strength 4.0 \
+  --seed 2 \
+  --notes "descrição da hipótese"
+
+# LinUCB
+poetry run bandit-cli retrain \
+  --algorithm linucb \
+  --alpha 1.0 \
+  --seed 2 \
+  --notes "descrição da hipótese"
+```
+
+O que acontece por baixo:
+1. Carrega `data/processed/bank_marketing.csv`, `data/synthetic_enrichment/offer_events.csv` e `delayed_rewards.csv`.
+2. Monta a tabela de treino (join interno, ~20 mil eventos com recompensa resolvida).
+3. Constrói a política candidata com priors do modelo de propensão PyTorch (Thompson) ou matriz identidade (LinUCB).
+4. Treina via replay com rejeição (Li et al., 2011) — passa linha a linha, aceita só quando a escolha da política bate com o braço logado.
+5. Avalia contra o golden set (`data/golden_set/evaluation_cases.jsonl`, 22 casos).
+6. Verifica os critérios de promoção automática:
+   - `golden_set_safety_rate >= 1.0` (100% — sem regressão de segurança)
+   - `mean_regret <= 0.03` (teto absoluto)
+   - `mean_regret <= active_mean_regret * 1.10` (≤ 10% pior que a política ativa)
+7. Salva `models/registry/<version_id>.joblib` (política treinada serializada).
+8. Adiciona entrada em `models/registry/manifest.json` com status `pending_approval` (passou) ou `rejected` (falhou).
+9. Registra run no MLflow (`mlruns/`) com parâmetros, métricas e tag `version_id`.
+
+### 3. Aprovar o candidato (obrigatório)
+
+```bash
+# Candidato que passou nos critérios (status: pending_approval)
+poetry run bandit-cli approve \
+  --version-id <VERSION_ID> \
+  --approver "Nome Sobrenome" \
+  --reason "justificativa da aprovação"
+
+# Candidato rejeitado pelos critérios — requer --override explícito
+poetry run bandit-cli approve \
+  --version-id <VERSION_ID> \
+  --approver "Nome Sobrenome" \
+  --reason "motivo do override e o que falhou" \
+  --override
+```
+
+`bandit-cli promote` recusa promover qualquer versão sem aprovação (`ValueError`
+explícito). Se `--override` for usado, `approved_via_override: true` fica
+permanentemente registrado no `manifest.json`.
+
+### 4. Rejeitar manualmente (qualquer momento)
+
+```bash
+poetry run bandit-cli reject \
+  --version-id <VERSION_ID> \
+  --reason "motivo da rejeição"
+```
+
+### 5. Promover para produção
+
+```bash
+poetry run bandit-cli promote --version-id <VERSION_ID>
+```
+
+Atualiza `active_version` no `manifest.json` e empilha a versão anterior em
+`history`. O serviço e o Streamlit carregam a política do `.joblib`
+correspondente ao `active_version` na inicialização — sem re-treinar nada.
+
+### 6. Reverter (rollback)
+
+```bash
+# Volta para a versão imediatamente anterior
+poetry run bandit-cli rollback
+
+# Volta para uma versão específica
+poetry run bandit-cli rollback --to <VERSION_ID>
+```
+
+Pode ser executado quantas vezes quiser. Cada rollback empilha a versão atual
+de volta em `history`, então é possível ir e voltar entre versões livremente.
+
+### 7. Monitorar drift
+
+```bash
+poetry run bandit-cli monitor-drift \
+  --candidate-version <VERSION_ID>
+```
+
+Verifica dois sinais:
+- **Drift de features**: PSI de `job` e `poutcome` entre as decisões recentes
+  (`logs/decisions.jsonl`) e a distribuição de referência do dataset de treino.
+  PSI > 0.2 é sinalizado como mudança significativa.
+- **Drift de performance**: compara o `mean_regret` do candidato com o da
+  política ativa. Regressão > 10% é sinalizada como `regressed: true`.
+
+### 8. Ver experimentos no MLflow
+
+```bash
+poetry run mlflow ui --backend-store-uri sqlite:///mlflow.db
+# Acesse http://localhost:5000
+```
+
+> O backend é SQLite (`mlflow.db`). Não use `mlflow ui` sem `--backend-store-uri`
+> — o MLflow 3.x tenta chamar `/traces/metrics` que não é suportado pelo FileStore,
+> gerando erros 500 repetitivos no terminal (funcionalmente inofensivo, mas confuso).
+
+Cada run de `retrain` aparece no experimento `bandit-platform` com a tag
+`version_id` que cruza com a entrada correspondente no `manifest.json`.
+
+### Estrutura dos artefatos gerados
+
+```
+models/registry/
+  manifest.json                        # registro de versões: active_version, history, records
+  <version_id>.joblib                  # política treinada serializada (uma por retrain)
+logs/
+  decisions.jsonl                      # log de auditoria (uma linha JSON por decisão)
+mlruns/
+  <experiment_id>/<run_id>/            # runs do MLflow (params, metrics, tags)
+```
+
 ## Status do projeto
 
 Concluído:

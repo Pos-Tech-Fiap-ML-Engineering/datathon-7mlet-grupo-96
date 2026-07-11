@@ -18,16 +18,16 @@ venv/
 .coverage
 htmlcov/
 
-# MLflow
+# MLflow - backend SQLite versionado para avaliação; mlruns/ é FileStore órfão
 mlruns/
 mlartifacts/
-mlflow.db
+# mlflow.db  ← rastreado (backend SQLite com os runs de retrain)
 
-# Model registry (artefatos de politicas treinadas - nunca versionados)
-models/
+# Model registry (artefatos de políticas treinadas - versionado para avaliação)
+# models/    ← rastreado (manifest.json + .joblib das políticas)
 
-# Logs
-logs/
+# Logs de decisão (versionado para avaliação)
+# logs/      ← rastreado (decisions.jsonl)
 
 # Terraform
 infra/terraform/.terraform/

@@ -1,9 +1,17 @@
 import json
+from pathlib import Path
 
 import pytest
 
 from bandit_platform import __version__
 from bandit_platform.cli import main
+from bandit_platform.data.clean import build_processed_dataset
+from bandit_platform.data.kaggle_loader import load_raw
+from bandit_platform.mlops.registry import PolicyRegistry
+from bandit_platform.synthetic.events import simulate_delayed_rewards, simulate_offer_events
+from bandit_platform.synthetic.offer_catalog import build_offer_catalog
+
+FIXTURE = Path(__file__).parent / "fixtures" / "bank_marketing_sample.csv"
 
 
 def test_version_flag_exits_zero_and_prints_version(capsys):
@@ -44,16 +52,6 @@ def test_decide_subcommand_prints_decision_json(monkeypatch, tmp_path, capsys):
     assert output["policy_version"] == "test_v0"
     assert (tmp_path / "logs" / "decisions.jsonl").exists()
 
-
-from pathlib import Path
-
-from bandit_platform.data.clean import build_processed_dataset
-from bandit_platform.data.kaggle_loader import load_raw
-from bandit_platform.mlops.registry import PolicyRegistry
-from bandit_platform.synthetic.events import simulate_delayed_rewards, simulate_offer_events
-from bandit_platform.synthetic.offer_catalog import build_offer_catalog
-
-FIXTURE = Path(__file__).parent / "fixtures" / "bank_marketing_sample.csv"
 
 
 class _StubPolicy:
